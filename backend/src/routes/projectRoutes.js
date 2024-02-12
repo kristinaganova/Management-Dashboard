@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const express = require('express');
+const authenticate = require('../middleware/authenticate');
+const authorize = require('../middleware/authorize');
+const Project = require('../models/Project');
+
+// Use authenticate middleware to protect the route
+router.get('/', authenticate, async (req, res) => {
+    const projects = await Project.find().catch(err => res.status(500).send(err));
+    res.json(projects);
+});
+
+// Example of using both authenticate and authorize middleware
+router.post('/', authenticate, authorize(['admin']), async (req, res) => {
+    const project = new Project(req.body);
+    const savedProject = await project.save().catch(err => res.status(400).send(err));
+    res.status(201).json(savedProject);
+});
 
 // GET all projects
 router.get('/', async (req, res) => {
